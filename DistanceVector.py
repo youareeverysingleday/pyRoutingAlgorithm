@@ -7,7 +7,7 @@
 
 """
 Document description:
-
+完成路由算法中的Bellman-Ford算法。
 """
 
 import sys
@@ -58,6 +58,7 @@ class DistanceVectorRoutingAlgorithm:
         # allWeightTable = [[[0] * 3] * edgesCount]*nodesCount
         # allEdgesList = [[[0 for i in range(3)]for j in range(edgesCount)]for n in range(nodesCount)]
         self.allWeightTable = [[sys.maxsize for i in range(self.nodesCount)]for j in range(self.nodesCount)]
+        # 枚举值，一共三种值。0表示是自己。1表示是直接邻居。2表示是非直接邻居。初始化全部设置为非直接邻居。
         self.allNeighborFlagTable = [[2 for i in range(self.nodesCount)]for j in range(self.nodesCount)]
         # outputInfoRecord = [["" for i in range(nodesCount + 1)]for j in range(4)]
         self.outputInfoRecord = [[""] for j in range(4)]
@@ -119,33 +120,18 @@ class DistanceVectorRoutingAlgorithm:
         if title == "start":
             self.outputInfoRecord[0].append("t=%d distance from %s to %s via %s is %d"
             %(step, sourceString, destinationString, neighborString, distance))
-            # print("t=%d distance from %s to %s via %s is %d"
-            # %(step, sourceString, destinationString, neighborString, distance))
-            # pass
         elif title == "initial":
             self.outputInfoRecord[1].append("router %s: %s is %d routing through %s"
             %(sourceString, destinationString, distance, neighborString))
-            # print("router %s: %s is %d routing through %s"
-            # %(sourceString, destinationString, neighborString, neighbor))
-            # pass
         elif title == "update":
             if distance != sys.maxsize:
-                # 将距离为inf的改变隐藏。
+                # 将距离为inf的隐藏起来，不显示。
                 self.outputInfoRecord[2].append("t=%d distance from %s to %s via %s is %d"
                 %(step, sourceString, destinationString, neighborString, distance))
-            # else:
-            #     outputInfoRecord[2].append("t=%d distance from %s to %s via %s is %s"
-            #     %(step, sourceString, destinationString, neighborString, "inf"))
-                
-            # print("t=%d distance from %s to %s via %s is %d"
-            # %(step, sourceString, destinationString, neighborString, distance))
-            # pass
         elif title == "final":
             self.outputInfoRecord[3].append("router %s: %s is %d routing through %s"
             %(sourceString, destinationString, distance, neighborString))
-            # print("router %s: %s is %d routing through %s"
-            # %(sourceString, destinationString, neighborString, neighbor))
-            # pass
+
         else:
             print(title)
             print("ERROR")
@@ -173,23 +159,29 @@ class DistanceVectorRoutingAlgorithm:
                 tempRoutingList = [sys.maxsize for i in range(self.nodesCount)]
                 neighborTempRecord = -1
 
+                # 将所有路径的cost存放到tempDistanceList中。将对应的距离选择的直接邻居存放到tempRoutingList中。
                 for neighborIndex in range(self.nodesCount):
+                    # 只选通过直接邻居作为出口来计算的最小路径cost。
                     if self.allNeighborFlagTable[n][neighborIndex] == 1:
                         tempRoutingList[neighborIndex] = neighborIndex
                         tempDistanceList[neighborIndex] = self.allWeightTable[n][neighborIndex] + self.allWeightTable[neighborIndex][m]
                         # if tempDistanceList[neighborIndex] < sys.maxsize:
                         #     recordOutputInfo("start", nodeNameList, 1, n, m, neighborIndex, tempDistanceList[neighborIndex], outputInfoRecord)
+                # 如果是自己，那么不用计算，直接是0。
                 if n == m:
                     self.allWeightTable[n][m] = 0
                 else:
+                    # 如果计算的到达直接邻居的所有路径cost的最小值还大于直接邻居直连的cost，那么就用直连的cost。
                     if min(tempDistanceList) > self.startConfigInfo[n][m]:
                         self.allWeightTable[n][m] = self.startConfigInfo[n][m]
                         neighborTempRecord = m
                     else:
+                        # 其他情况取最小值。
                         self.allWeightTable[n][m] = min(tempDistanceList)
                         neighborTempRecord = tempRoutingList[tempDistanceList.index(min(tempDistanceList))]
                     # chooseRouteInfo[n][m] = neighborTempRecord
                 
+                # 进行记录。
                 if self.state == "start":
                     self.recordOutputInfo("start", 1, n, m, neighborTempRecord, self.allWeightTable[n][m])
                     self.recordOutputInfo("initial", 0, n, m, neighborTempRecord, self.allWeightTable[n][m])
@@ -272,15 +264,15 @@ if __name__ == '__main__':
     
     dv.BellmanFord()
     print(dv.allWeightTable)
-    print(dv.startConfigInfo)
+    # print(dv.startConfigInfo)
     # print(outputInfoRecord)
 
     dv.state = "change"
     dv.readChangeFileFromFile()
     dv.BellmanFord()
-    print("----------------")
+    # print("----------------")
     print(dv.allWeightTable)
-    print(dv.startConfigInfo)
+    # print(dv.startConfigInfo)
 
     # for n in range(dv.nodesCount):
     #     for i in range(dv.nodesCount):
