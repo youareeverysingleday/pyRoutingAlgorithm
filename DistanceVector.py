@@ -26,6 +26,8 @@ class DistanceVectorRoutingAlgorithm:
         self.allWeightTable = []
         self.allNeighborFlagTable = []
         self.outputInfoRecord = []
+        self.startConfigInfo = []
+        # self.chooseRouteInfo = []
 
         self.nodesCount = 0
         self.edgesCount = 0
@@ -56,9 +58,10 @@ class DistanceVectorRoutingAlgorithm:
         # allWeightTable = [[[0] * 3] * edgesCount]*nodesCount
         # allEdgesList = [[[0 for i in range(3)]for j in range(edgesCount)]for n in range(nodesCount)]
         self.allWeightTable = [[sys.maxsize for i in range(self.nodesCount)]for j in range(self.nodesCount)]
-        self.allNeighborFlagTable = [[False for i in range(self.nodesCount)]for j in range(self.nodesCount)]
+        self.allNeighborFlagTable = [[2 for i in range(self.nodesCount)]for j in range(self.nodesCount)]
         # outputInfoRecord = [["" for i in range(nodesCount + 1)]for j in range(4)]
         self.outputInfoRecord = [[""] for j in range(4)]
+        self.startConfigInfo = [[sys.maxsize for i in range(self.nodesCount)]for j in range(self.nodesCount)]
 
         self.outputInfoRecord[0][0] = "#START"
         self.outputInfoRecord[1][0] = "#INITIAL"
@@ -79,10 +82,15 @@ class DistanceVectorRoutingAlgorithm:
             self.allWeightTable[param0][param0] = 0
             self.allWeightTable[param1][param1] = 0
 
-            self.allNeighborFlagTable[param0][param1] = True
-            self.allNeighborFlagTable[param1][param0] = True
-            self.allNeighborFlagTable[param0][param0] = True
-            self.allNeighborFlagTable[param1][param1] = True
+            self.startConfigInfo[param0][param1] = param2
+            self.startConfigInfo[param1][param0] = param2
+            self.startConfigInfo[param0][param0] = 0
+            self.startConfigInfo[param1][param1] = 0
+
+            self.allNeighborFlagTable[param0][param1] = 1
+            self.allNeighborFlagTable[param1][param0] = 1
+            self.allNeighborFlagTable[param0][param0] = 0
+            self.allNeighborFlagTable[param1][param1] = 0
 
             self.recordOutputInfo("start", 0, param0, param1, param1, param2)
 
@@ -98,6 +106,11 @@ class DistanceVectorRoutingAlgorithm:
         :param distance:
         :return:
         """
+        # 对于源节点本身不用显示。
+        if source == destination:
+            # print("source == destination")
+            return 
+
         title = title.lower()
         sourceString = self.nodeNameList[source]
         destinationString = self.nodeNameList[destination]
@@ -149,38 +162,37 @@ class DistanceVectorRoutingAlgorithm:
             for m in range(self.nodesCount):
                 # time.sleep(0.3)
                 if n == m:
-                    # 如果是源节点自己，那么就不用计算。自己计算下一个。
-                    continue
+                    # 如果是源节点自己，那么该节点的cost为0。
+                    self.allWeightTable[n][m] = 0
 
-                # 初始化一个缓存路cost的列表，用于最后的比较。
+                # 初始化tempDistanceList缓存路径cost的列表，用于最后的比较。
+                # 每个下标对应一个节点，表示源节点到对应下标节点的cost。
+                # 理论上可以是全连接网络。也就是每个节点都和所有节点相连。所以初始化tempDistanceList长度为所有节点的数量。
+                # tempDistanceList是用于计算时缓存用的，计算之后的结果才填写到allWeightTable里面。
                 tempDistanceList = [sys.maxsize for i in range(self.nodesCount)]
+                tempRoutingList = [sys.maxsize for i in range(self.nodesCount)]
                 neighborTempRecord = -1
-                # 首先判断是否和需要计算的源节点是邻居。
-                if self.allNeighborFlagTable[n][m] == True:
-                    # 将计算的值都存入零时表中。
-                    for i in range(self.nodesCount):
-                        if i == m:
-                            # 如果计算的是源节点和邻居自己。
-                            tempDistanceList[i] = self.allWeightTable[n][i] + self.allWeightTable[m][m]
-                        else:
-                            # 如果计算的是源节点需要通过另外一个邻居。
-                            tempDistanceList[i] = self.allWeightTable[n][i] + self.allWeightTable[i][m]
+
+                for neighborIndex in range(self.nodesCount):
+                    if self.allNeighborFlagTable[n][neighborIndex] == 1:
+                        tempRoutingList[neighborIndex] = neighborIndex
+                        tempDistanceList[neighborIndex] = self.allWeightTable[n][neighborIndex] + self.allWeightTable[neighborIndex][m]
+                        # if tempDistanceList[neighborIndex] < sys.maxsize:
+                        #     recordOutputInfo("start", nodeNameList, 1, n, m, neighborIndex, tempDistanceList[neighborIndex], outputInfoRecord)
+                if n == m:
+                    self.allWeightTable[n][m] = 0
                 else:
-                    # 对于和源节点不是邻居的节点，计算方式不同。
-                    for i in range(self.nodesCount):
-                        if self.allNeighborFlagTable[n][i] == True:
-                            # 对于不是邻居的节点，需要通过邻居才能连接。
-                            tempDistanceList[i] = self.allWeightTable[n][i] + self.allWeightTable[i][m]
-                # 计算最小值。
-                # if self.allWeightTable[n][m] != min(tempDistanceList):
-                #     self.recordOutputInfo("update", 0, n, m, neighborTempRecord, self.allWeightTable[n][m])
-                self.allWeightTable[n][m] = min(tempDistanceList)
-                # 记录邻居点。
-                neighborTempRecord = tempDistanceList.index(min(tempDistanceList))
-                if self.state == "start":
-                    self.recordOutputInfo("start", n, n, m, neighborTempRecord, self.allWeightTable[n][m])
-                    self.recordOutputInfo("initial", 0, n, m, neighborTempRecord, self.allWeightTable[n][m])
+                    if min(tempDistanceList) > self.startConfigInfo[n][m]:
+                        self.allWeightTable[n][m] = self.startConfigInfo[n][m]
+                        neighborTempRecord = m
+                    else:
+                        self.allWeightTable[n][m] = min(tempDistanceList)
+                        neighborTempRecord = tempRoutingList[tempDistanceList.index(min(tempDistanceList))]
+                    # chooseRouteInfo[n][m] = neighborTempRecord
                 
+                if self.state == "start":
+                    self.recordOutputInfo("start", 1, n, m, neighborTempRecord, self.allWeightTable[n][m])
+                    self.recordOutputInfo("initial", 0, n, m, neighborTempRecord, self.allWeightTable[n][m])
                 if self.state == "change":
                     self.recordOutputInfo("update", n, n, m, neighborTempRecord, self.allWeightTable[n][m])
                     self.recordOutputInfo("final", 0, n, m, neighborTempRecord, self.allWeightTable[n][m])
@@ -201,7 +213,7 @@ class DistanceVectorRoutingAlgorithm:
 
     def readChangeFileFromFile(self):
         # self.changeFilePath
-        with open("changedConfig2") as f:
+        with open("changeConfig0") as f:
             lines = f.readlines()
 
             for i in range(len(lines)):
@@ -224,7 +236,17 @@ class DistanceVectorRoutingAlgorithm:
             # 这里只修改权重，没有新增节点或者删除节点，所以不用修改self.allNeighborFlagTable中的内容。
             self.allWeightTable[param0][param1] = param2
             self.allWeightTable[param1][param0] = param2
+
+            self.startConfigInfo[param0][param1] = param2
+            self.startConfigInfo[param1][param0] = param2
+
             self.recordOutputInfo("update", 0, param0, param1, param1, param2)
+
+        # 如果重新读取路径耗费文件，那么需要将allWeightTable表重置。
+        for n in range(self.nodesCount):
+            for m in range(self.nodesCount):
+                if self.startConfigInfo[n][m] < sys.maxsize:
+                    self.allWeightTable[n][m] = self.startConfigInfo[n][m]
             
 
 if __name__ == '__main__':
@@ -249,12 +271,16 @@ if __name__ == '__main__':
     # 
     
     dv.BellmanFord()
-    # print(allWeightTable)
+    print(dv.allWeightTable)
+    print(dv.startConfigInfo)
     # print(outputInfoRecord)
 
     dv.state = "change"
     dv.readChangeFileFromFile()
     dv.BellmanFord()
+    print("----------------")
+    print(dv.allWeightTable)
+    print(dv.startConfigInfo)
 
     # for n in range(dv.nodesCount):
     #     for i in range(dv.nodesCount):
