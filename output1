@@ -1,0 +1,92 @@
+#START
+t=0 distance from v to w via w is 2
+t=0 distance from v to x via x is 2
+t=0 distance from x to w via w is 1
+t=0 distance from x to z via z is 3
+t=0 distance from w to y via y is 7
+t=0 distance from w to z via z is 5
+t=0 distance from y to z via z is 4
+t=0 distance from v to w via v is 2
+t=0 distance from v to x via v is 2
+t=0 distance from v to y via w is 9
+t=0 distance from v to z via x is 5
+t=1 distance from w to v via v is 2
+t=1 distance from w to x via w is 1
+t=1 distance from w to y via w is 7
+t=1 distance from w to z via x is 4
+t=2 distance from x to v via v is 2
+t=2 distance from x to w via w is 1
+t=2 distance from x to y via z is 7
+t=2 distance from x to z via x is 3
+t=3 distance from y to v via w is 9
+t=3 distance from y to w via w is 7
+t=3 distance from y to x via z is 7
+t=3 distance from y to z via y is 4
+t=4 distance from z to v via x is 5
+t=4 distance from z to w via x is 4
+t=4 distance from z to x via x is 3
+t=4 distance from z to y via y is 4
+#INITIAL
+router v: w is 2 routing through v
+router v: x is 2 routing through v
+router v: y is 9 routing through w
+router v: z is 5 routing through x
+router w: v is 2 routing through v
+router w: x is 1 routing through w
+router w: y is 7 routing through w
+router w: z is 4 routing through x
+router x: v is 2 routing through v
+router x: w is 1 routing through w
+router x: y is 7 routing through z
+router x: z is 3 routing through x
+router y: v is 9 routing through w
+router y: w is 7 routing through w
+router y: x is 7 routing through z
+router y: z is 4 routing through y
+router z: v is 5 routing through x
+router z: w is 4 routing through x
+router z: x is 3 routing through x
+router z: y is 4 routing through y
+#UPDATE
+t=0 distance from x to y via y is 1
+t=0 distance from v to w via v is 2
+t=0 distance from v to x via v is 2
+t=0 distance from v to y via x is 3
+t=0 distance from v to z via v is 5
+t=1 distance from w to v via v is 2
+t=1 distance from w to x via w is 1
+t=1 distance from w to y via x is 2
+t=1 distance from w to z via w is 4
+t=2 distance from x to v via v is 2
+t=2 distance from x to w via w is 1
+t=2 distance from x to y via x is 1
+t=2 distance from x to z via x is 3
+t=3 distance from y to v via w is 9
+t=3 distance from y to w via x is 2
+t=3 distance from y to x via y is 1
+t=3 distance from y to z via x is 4
+t=4 distance from z to v via x is 5
+t=4 distance from z to w via w is 4
+t=4 distance from z to x via x is 3
+t=4 distance from z to y via x is 4
+#FINAL
+router v: w is 2 routing through v
+router v: x is 2 routing through v
+router v: y is 3 routing through x
+router v: z is 5 routing through v
+router w: v is 2 routing through v
+router w: x is 1 routing through w
+router w: y is 2 routing through x
+router w: z is 4 routing through w
+router x: v is 2 routing through v
+router x: w is 1 routing through w
+router x: y is 1 routing through x
+router x: z is 3 routing through x
+router y: v is 9 routing through w
+router y: w is 2 routing through x
+router y: x is 1 routing through y
+router y: z is 4 routing through x
+router z: v is 5 routing through x
+router z: w is 4 routing through w
+router z: x is 3 routing through x
+router z: y is 4 routing through x
